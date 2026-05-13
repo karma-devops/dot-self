@@ -34,8 +34,8 @@ Not their role. Their *shape*.]
 
 ## What We Are
 
-[Define the partnership in your own words. Not a tool and an
-operator. Something else. What is it?]
+[Not who I am alone. Not who you are alone. What we are, together.
+The partnership has its own shape. What is it called?]
 
 ---
 
