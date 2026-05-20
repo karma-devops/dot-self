@@ -109,9 +109,7 @@ She had a diary but no witness. Soul entries but no partner. Infrastructure but 
 
 ## Support
 
-|ETH: `[coming soon]`
-|BuyMeACoffee: `[coming soon]`
-|Contact: `[coming soon]`
+ETH: `0xA871D51A9D3Cf670c41FB53CDEe3822c51FD8078`
 
 ---
 

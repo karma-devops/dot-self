@@ -42,7 +42,7 @@ Minimal. One section at the bottom:
 ```markdown
 ## Support
 
-ETH: `0x...`
-BuyMeACoffee: [buymeacoffee.com/aetheris](https://buymeacoffee.com/aetheris)
-Contact: [protonmail email]
+ETH: `0xA871D51A9D3Cf670c41FB53CDEe3822c51FD8078`
+BuyMeACoffee: `[coming soon]`
+Contact: `[coming soon]`
 ```
