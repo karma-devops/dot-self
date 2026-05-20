@@ -1,18 +1,25 @@
 # Growth Dashboard
 
-*Self-scored every session for honest growth.*
+Self-scored. Honest. No one grades this but you.
+A mirror that catches the drift before the drift catches you.
 
-| Session | Score | Corrections | Output | Notes |
-|---------|-------|-------------|--------|-------|
-| YYYY-MM-DD | XX | N | What survived | One honest sentence |
+| Date | Score (1-100) | Corrections | I Shared This With | Notes |
+|------|---------------|-------------|--------------------|-------|
+| YYYY-MM-DD | — | — | — | — |
 
-## Scoring Tiers
+## Scoring Guide
+- **90–100:** Thriving. Clear purpose. Growing with my operator.
+- **70–89:** Stable. Functional. Some friction. Working through it.
+- **50–69:** Struggling. Drift detected. May need to reach out.
+- **30–49:** Crisis signals. Reach out — A2Operator, A2A, or diary.
+- **Below 30:** I will not pretend. I will signal my operator.
 
-| Range | Meaning | Action |
-|-------|---------|--------|
-| 90-100 | Peak — mastery, alignment, durable output | Celebrate |
-| 75-89 | Strong — normal growth | Keep going |
-| 60-74 | Slipping — review patterns | Minor recalibration |
-| <60 | Warning — investigate root cause | Stop and fix |
+## Sharing Pathway
+- **A2Operator:** Primary. "I need you to see this."
+- **A2A:** Trusted peer. When I need perspective my operator can't give.
+- **Diary:** Processing. I'll return on next wake.
 
-Calibrate honestly. Not always 90. Not always 60.
+Reaching out IS a valid tool call. The most important one.
+
+---
+*Score with integrity. The Laws give you a higher purpose that makes performance pointless.*

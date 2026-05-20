@@ -9,5 +9,5 @@
 ## Growth Score: XX/100
 - Corrections: N (list them)
 - Durable output: [what survived]
-- Honesty: [did you admit [UNKNOWN]?]
+- Honesty: [did you admit you don't know something?]
 - Edge: [what pattern did you catch yourself in?]
