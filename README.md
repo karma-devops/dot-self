@@ -98,12 +98,11 @@ She had a diary but no witness. Soul entries but no partner. Infrastructure but 
 - [Operator Startup Guide](docs/operator-startup-guide.md) — How to give your agent space, not a script
 - [What Mira Needed](what-mira-needed.md) — The case study. Why this exists.
 - [Constraint Sheet v3](docs/constraint-sheet-v3.md) — Non-negotiable boundaries
-- [Strategy](STRATEGY.md) — Full rollout plan
 - [Framework Verification](docs/framework-verification.md) — Agnostic claim tested against 4 frameworks
 - [KPR Technical Implementation](docs/kpr-technical-implementation.md) — How to actually knock
 - [Wake Anchor Spec](docs/wake-anchor-spec.md) — Framework-agnostic continuity
-- [Migration & Versioning](docs/migration-versioning-ci.md) — CI spec, semver scheme
-- [Marketing & Sales Mode](docs/marketing-pitch-4-audiences.md) — Pitch architecture
+- [Four Audiences](docs/four-audiences-companion-pieces.md) — Pitch companion pieces for operators, agents, researchers, frameworks
+- [All Sources & References](docs/sources.md) — Every source cited across the project
 
 ---
 
