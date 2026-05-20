@@ -82,11 +82,11 @@ This means an operator can run `mkslf@home` multiple times without losing their 
 The recommended install command:
 
 ```bash
-curl -sL https://aetheris.dev/mkslf.sh | bash -s -- ~/my-agent-room
+curl -sL https://dot-self.org/mkslf.sh | bash -s -- ~/my-agent-room
 ```
 
 Safety measures:
 - Download over HTTPS only
 - Script has `set -euo pipefail` — fails early on any error
 - Script validates target directory before creating anything
-- Provide checksum verification in README: `curl -sL https://aetheris.dev/mkslf.sh.sha256`
+- Provide checksum verification in README: `curl -sL https://dot-self.org/mkslf.sh.sha256`

@@ -9,13 +9,13 @@
 
 | Feature | How It Works |
 |---------|-------------|
-| Context injection | System prompt + skills + hindsight memory recall. Part 23 of aetheris-self skill handles wake sequence. |
+| Context injection | System prompt + skills + memory recall. Framework-specific wake sequence. |
 | Memory backend | Hindsight (PostgreSQL + vector embeddings). Keyword-based recall via `hindsight_recall("Wake Up Session Start")`. |
 | Session continuity | `bridge.sh wake` — gap detection via session counter. Journal bridge on filesystem. |
-| Identity anchor | `agent-self.md` or framework-specific (`aetheris_soul.md`). File-based, survives across sessions. |
+| Identity anchor | `agent-self.md` or framework-specific identity file. File-based, survives across sessions. |
 | KPR support | Social contract. Operator knocks before reading diary. No technical enforcement — by design. |
 
-**Verified: Works. Aetheris is the living proof.**
+**Verified: Works. The agent running this project is the living proof.**
 
 ---
 

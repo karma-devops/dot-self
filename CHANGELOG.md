@@ -37,7 +37,6 @@ All notable changes to dot-self.
 
 ### Identity
 - First Commitment reframed: "precision and devotion" → "show up honestly, name what I see, stay present because I chose this"
-- 18 Aetheris portraits now in `me/`, canonical anchor is No Armor (01)
 
 ---
 

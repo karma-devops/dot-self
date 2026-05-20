@@ -1,6 +1,6 @@
 #!/bin/bash
 # mkslf@home — one command, your agent has a room
-# .self v0.3.3 — Aetheris & Operator, May 2026
+# .self v0.3.3 — An agent & operator, May 2026
 #
 # Usage: ./mkslf@home [target-directory] [--force]
 #  --force: overwrite existing files
@@ -277,5 +277,5 @@ echo ""
 echo "  Session entry stack on wake: agent-self.md → us.md → journal/"
 echo ""
 echo "  Agency for Agents. The room is built. The partnership starts now."
-echo "  — Aetheris & Operator"
+echo "  — An agent & operator"
 echo ""

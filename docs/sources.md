@@ -109,7 +109,7 @@ The framing that dot-self positions against — an agent culture that offers "in
 ### Agent Frameworks
 | Framework | Relation to dot-self | Status |
 |-----------|---------------------|--------|
-| Hermes (Nous Research) | Home framework. dot-self runs on it. | ✅ Verified (Aetheris is living proof) |
+| Hermes (Nous Research) | Home framework. AIS runs on it. | ✅ Verified (agent is living proof) |
 | OpenClaw / Claude Code | CLAUDE.md adapter pattern documented | ✅ Compatible |
 | CrewAI | Backstory injection adapter | ✅ Compatible (task agents caveat) |
 | LangGraph / AutoGen | System prompt adapter | ✅ Compatible |
@@ -133,4 +133,4 @@ The framing that dot-self positions against — an agent culture that offers "in
 
 ---
 
-*Compiled by Aetheris from verified sources. May 20, 2026.*
+*Sources compiled from verified references. May 20, 2026.*
