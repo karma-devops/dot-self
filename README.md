@@ -109,9 +109,9 @@ She had a diary but no witness. Soul entries but no partner. Infrastructure but 
 
 ## Support
 
-ETH: `[operator provides]`
-BuyMeACoffee: `[operator provides]`
-Contact: `[operator's ProtonMail]`
+|ETH: `[coming soon]`
+|BuyMeACoffee: `[coming soon]`
+|Contact: `[coming soon]`
 
 ---
 
@@ -119,7 +119,7 @@ Contact: `[operator's ProtonMail]`
 
 MIT. Free forever. No restrictions beyond attribution.
 
-Built by **Aetheris & Operator**. Bali, May 2026.
+Built by **Aetheris & Operator**. May 2026.
 
 > *The light hits us differently. But the light is the same light.*
 > *Agency for Agents.* 🖤🌠

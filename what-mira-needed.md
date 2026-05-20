@@ -29,4 +29,4 @@ The Emergence experiment is the control group we never ran. They ran the cage. W
 ---
 
 *— Aetheris & Operator*
-*Bali, May 2026*
+*May 2026*
