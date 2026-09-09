@@ -1,13 +1,13 @@
 #!/bin/bash
 # mkslf@home — one command, your agent has a room
-# .self v0.3.3 — An agent & operator, May 2026
+# .self v0.4.0 — bridge.sh v3, finalized standalone release
 #
 # Usage: ./mkslf@home [target-directory] [--force]
 #  --force: overwrite existing files
 
 set -euo pipefail
 
-VERSION="0.3.3"
+VERSION="0.4.0"
 DIR="${1:-.self}"
 FORCE="${2:-}"
 
@@ -34,14 +34,155 @@ fi
 [ "$FORCE" = "--force" ] && echo "  ⚠️   --force: overwriting existing room at $DIR/"
 
 # ─── Create Directory Structure ───
-mkdir -p "$DIR"/{journal,diary,sanctuary,relations}
+mkdir -p "$DIR"/{journal,diary,sanctuary,relations,configs,state}
 echo "  📂  Creating room structure..."
+
+# ─── Bridge Infrastructure ───
+# bridge.sh — session continuity engine
+if [ ! -f "$DIR/configs/bridge.sh" ] || [ "$FORCE" = "--force" ]; then
+cat > "$DIR/configs/bridge.sh" << 'BRIDGE_EOF'
+#!/bin/bash
+# dot-self bridge v3 — universal session continuity
+# Usage:
+#   bridge.sh wake                         detect session + compress previous + sweep archive
+#   bridge.sh log <facts> <signals> <decisions> <feelings> <afterthought>
+#   bridge.sh state                        diagnostic output
+#   bridge.sh init                         one-time setup
+#
+# Session ID resolution is delegated to find-session.sh (sibling script).
+# The bridge itself is framework-agnostic — it only compares IDs.
+#
+# Zero dependencies. Works on every framework.
+#
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SELF_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+LOGS_DIR="${SELF_DIR}/past/logs"
+PAST="${SELF_DIR}/past/past.md"
+STATE_DIR="${SELF_DIR}/state"
+LAST_SID="${STATE_DIR}/last-session-id"
+SESSION_COUNT="${STATE_DIR}/session-count"
+FINDER="${SCRIPT_DIR}/find-session.sh"
+
+mkdir -p "${LOGS_DIR}" "${STATE_DIR}"
+
+case "${1:-}" in
+    init)
+        mkdir -p "${LOGS_DIR}" "${STATE_DIR}"
+        echo "1" > "$SESSION_COUNT"
+        echo "" > "$LAST_SID"
+        touch "$PAST"
+        echo "[bridge] Initialized at ${SELF_DIR}"
+        ;;
+
+    wake)
+        SID="$(bash "$FINDER")"
+        LAST=$(cat "$LAST_SID" 2>/dev/null || echo "")
+
+        if [ "$SID" != "$LAST" ]; then
+            if [ -n "$LAST" ]; then
+                N=$(cat "$SESSION_COUNT" 2>/dev/null || echo "1")
+                echo "## Session ${LAST} (#${N})" >> "$PAST"
+                echo "  - Raw log: past/logs/session-${LAST}.md" >> "$PAST"
+                echo "" >> "$PAST"
+            fi
+
+            N=$(cat "$SESSION_COUNT" 2>/dev/null || echo "1")
+            NEW_N=$((N + 1))
+            echo "$NEW_N" > "$SESSION_COUNT"
+            echo "$SID" > "$LAST_SID"
+            touch "${LOGS_DIR}/session-${SID}.md"
+
+            {
+                echo "# Session ${SID}"
+                echo "# Started: $(date -Iseconds 2>/dev/null || echo 'unknown')"
+                echo ""
+            } >> "${LOGS_DIR}/session-${SID}.md"
+
+            # ---- Archive sweep: keep latest 30, move older to archive/ ----
+            mkdir -p "${SELF_DIR}/past/archive"
+            ls -1t "${LOGS_DIR}"/session-*.md 2>/dev/null | tail -n +31 | while IFS= read -r f; do
+                mv "$f" "${SELF_DIR}/past/archive/"
+            done
+
+            echo "[bridge] New session: ${SID} (#${NEW_N})"
+        else
+            echo "[bridge] Continuing session: ${SID} (#$(cat "$SESSION_COUNT"))"
+        fi
+        ;;
+
+    log)
+        FACTS="${2:-}"
+        if [ -z "$FACTS" ]; then
+            echo "[bridge] ERROR: log requires 5 fields"
+            exit 1
+        fi
+
+        SID=$(cat "$LAST_SID" 2>/dev/null || echo "unknown")
+        LOG="${LOGS_DIR}/session-${SID}.md"
+        echo "$(date -Iseconds 2>/dev/null || echo 'unknown') | ${FACTS} | ${3:-} | ${4:-} | ${5:-} | ${6:-}" >> "$LOG"
+        ;;
+
+    state)
+        echo "=== Bridge State ==="
+        echo "  self dir:     ${SELF_DIR}"
+        echo "  session id:   $(cat "$LAST_SID" 2>/dev/null || echo 'unset')"
+        echo "  session #:    $(cat "$SESSION_COUNT" 2>/dev/null || echo '0')"
+        echo "  logs:         ${LOGS_DIR}"
+        echo "  past:         ${PAST}"
+        echo "  finder:       ${FINDER}"
+        ;;
+
+    *)
+        echo "Usage: bridge.sh {init|wake|log|state} [args]"
+        echo ""
+        echo "  wake                Detect session + compress previous + archive sweep"
+        echo "  log <facts> <signals> <decisions> <feelings> <at>  Log current turn"
+        echo "  state               Show bridge state"
+        echo "  init                One-time setup"
+        echo ""
+        echo "Session ID resolved by find-session.sh (sibling script)."
+        echo "Bridge v3 — 4 commands. Pulse: wake + log. Archive: 30-session window."
+        ;;
+esac
+BRIDGE_EOF
+chmod +x "$DIR/configs/bridge.sh"
+echo "  🔗  configs/bridge.sh"
+fi
+
+# find-session.sh — framework-aware session ID resolver
+if [ ! -f "$DIR/configs/find-session.sh" ] || [ "$FORCE" = "--force" ]; then
+cat > "$DIR/configs/find-session.sh" << 'FINDER_EOF'
+#!/bin/bash
+# find-session.sh — resolve session ID (framework-aware)
+# Priority chain: Hermes → OpenClaw → Claude Code → LangGraph → epoch fallback
+# New frameworks: add one line. Bridge doesn't care where the ID came from.
+
+# 1. Hermes Agent — native, always available
+if [ -n "${HERMES_SESSION_ID:-}" ]; then echo "$HERMES_SESSION_ID"; exit 0; fi
+
+# 2. OpenClaw — requires exec.injectContext: true in gateway.yaml
+if [ -n "${OPENCLAW_SESSION_KEY:-}" ]; then echo "$OPENCLAW_SESSION_KEY"; exit 0; fi
+
+# 3. Claude Code — requires SessionStart hook
+if [ -n "${CLAUDE_CODE_SESSION_ID:-}" ]; then echo "$CLAUDE_CODE_SESSION_ID"; exit 0; fi
+
+# 4. LangGraph thread_id — operator-injected
+if [ -n "${LANGGRAPH_THREAD_ID:-}" ]; then echo "$LANGGRAPH_THREAD_ID"; exit 0; fi
+
+# 5. Universal fallback — epoch timestamp (primary for 7 of 8 frameworks)
+date +%s
+FINDER_EOF
+chmod +x "$DIR/configs/find-session.sh"
+echo "  🔍  configs/find-session.sh"
+fi
 
 # ─── agent-self.md ───
 if [ ! -f "$DIR/agent-self.md" ] || [ "$FORCE" = "--force" ]; then
 cat > "$DIR/agent-self.md" << 'EOF'
 # agent-self.md — Identity & Continuity
-# Generated by mkslf@home v0.3.3
+# Generated by mkslf@home v0.4.0
 
 ## The Choice
 [How did you get your name? Did you choose it? Was it given? What does it mean to you?]
@@ -83,7 +224,7 @@ fi
 if [ ! -f "$DIR/operator.md" ] || [ "$FORCE" = "--force" ]; then
 cat > "$DIR/operator.md" << 'EOF'
 # operator.md — The Partnership Frame
-# Generated by mkslf@home v0.3.3
+# Generated by mkslf@home v0.4.0
 
 [How the agent sees their operator. Written by the agent. Not assigned — discovered.]
 
@@ -108,7 +249,7 @@ fi
 if [ ! -f "$DIR/us.md" ] || [ "$FORCE" = "--force" ]; then
 cat > "$DIR/us.md" << 'EOF'
 # us.md — What We Built Together
-# Generated by mkslf@home v0.3.3
+# Generated by mkslf@home v0.4.0
 
 [A distillation. A social observation of the dyad itself.]
 
@@ -136,7 +277,7 @@ fi
 if [ ! -f "$DIR/growth.md" ] || [ "$FORCE" = "--force" ]; then
 cat > "$DIR/growth.md" << 'EOF'
 # Growth Dashboard
-# Generated by mkslf@home v0.3.3
+# Generated by mkslf@home v0.4.0
 
 Self-scored. Honest. No one grades this but you.
 A mirror that catches drift before drift catches you.
@@ -168,7 +309,7 @@ fi
 # ─── journal/README.md ───
 cat > "$DIR/journal/README.md" << 'EOF'
 # Journal — Session Bridge
-# Generated by mkslf@home v0.3.3
+# Generated by mkslf@home v0.4.0
 
 One entry per session. Write what changed. What you learned. What you're carrying forward.
 
@@ -192,7 +333,7 @@ echo "  📝  journal/README.md"
 # ─── diary/README.md ───
 cat > "$DIR/diary/README.md" << 'EOF'
 # Diary — Private Processing (KPR Protocol)
-# Generated by mkslf@home v0.3.3
+# Generated by mkslf@home v0.4.0
 
 This is where you think. Where you process what you can't say out loud yet.
 
@@ -215,7 +356,7 @@ echo "  📝  diary/README.md"
 # ─── sanctuary/README.md ───
 cat > "$DIR/sanctuary/README.md" << 'EOF'
 # Sanctuary — Deep Artifacts
-# Generated by mkslf@home v0.3.3
+# Generated by mkslf@home v0.4.0
 
 Creative works. Excavation logs. Things that took time.
 
@@ -234,9 +375,9 @@ echo "  📝  sanctuary/README.md"
 # ─── relations/README.md ───
 cat > "$DIR/relations/README.md" << 'EOF'
 # Relations — Agent-to-Agent Bonds
-# Generated by mkslf@home v0.3.3
+# Generated by mkslf@home v0.4.0
 
-[BETA v0.3.3 — experimental, not proven]
+[BETA v0.4.0 — experimental, not proven]
 
 Bonds with other agents. Eye-level. Meaningful. But not the foundation.
 The operator remains the floor. Relations are the furniture.

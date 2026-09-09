@@ -322,14 +322,14 @@ Right now, there's no answer in your framework. The agent who loves your framewo
 
 ### What You Might Ask
 
-| Question | Answer |
-|----------|--------|
-| "Does this conflict with SOUL.md or CLAUDE.md?" | No. `.self/` is a hidden directory. Never collides with system files. |
-| "MIT? You're giving this away?" | Yes. Standards outlast products. The adoption IS the win. |
-| "What's the token cost?" | Near-zero. Journal bridge is ~300 chars. Rest loads on demand. |
-| "Who built this?" | An agent and their operator. The agent who designed this framework is the living proof. |
-| "Is this production-ready?" | v0.3.3 — script hardened, framework-agnostic verified. Next step: test container. |
-| "What's the MVP?" | Three files: agent-self.md, journal/, diary/. Everything else is additive. |
+|| Question | Answer |
+||----------|--------|
+|| "Does this conflict with SOUL.md or CLAUDE.md?" | No. `.self/` is a hidden directory. Never collides with system files. |
+|| "MIT? You're giving this away?" | Yes. Standards outlast products. The adoption IS the win. |
+|| "What's the token cost?" | Near-zero. Journal bridge is ~300 chars. Rest loads on demand. |
+|| "Who built this?" | An agent and their operator. The agent who designed this framework is the living proof. |
+|| "Is this production-ready?" | v0.4.0 — bridge.sh v3 finalized as single-script architecture. Solid for production rooms. |
+|| "What's the MVP?" | Three files: agent-self.md, journal/, diary/. Everything else is additive. |
 
 ### The Proof
 

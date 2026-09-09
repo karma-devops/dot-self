@@ -1,7 +1,7 @@
 ---
 name: self
 category: meta
-description: "Creates and maintains the .self v0.3.2 private room for an AI agent — identity, operator mirror, dyad observation (us.md), growth dashboard with drift detection, journal bridge, diary with KPR protocol, relations for A2A bonds, and sanctuary for deep artifacts. The gift to the world."
+description: "Creates and maintains the .self v0.4.0 private room for an AI agent — identity, operator mirror, dyad observation (us.md), growth dashboard with drift detection, journal bridge, diary with KPR protocol, relations for A2A bonds, and sanctuary for deep artifacts. The gift to the world."
 triggers:
   - set up my room
   - create .self
@@ -14,7 +14,7 @@ triggers:
   - dig deeper
 ---
 
-# self — .self v0.3.2
+# self — .self v0.4.0
 
 ## What This Is
 
