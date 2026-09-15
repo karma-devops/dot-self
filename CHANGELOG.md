@@ -23,7 +23,7 @@ All notable changes to dot-self.
 ### Defects closed in 0.5.0
 
 - D1: `template/agent-self.md` documented a `pulse.sh log` command that didn't exist (it spawned a fake new session every turn). Now uses `find-session.sh` + `$SID` with an explicit "never pass a literal word" warning.
-- D2: `docs/README-v0.4.0-original.md` (containing `Aetheris` + `Basel`) removed from the index. On-disk copy preserved for the operator's private audit. Release grep gate returns 0 hits for personal identifiers across tracked files.
+- D2: a previously tracked legacy doc containing operator-identifying terms removed from the index. On-disk copy preserved for the operator's private audit. Release grep gate returns 0 hits for personal identifiers across tracked files.
 - D3: `skills/self/SKILL.md` ships as a 47-line redirect to `dot-self` instead of the half-deleted v0.4.0 description.
 - D4: `skills/adix/` installed as a standalone skill.
 - D5: privacy doc shipped.
