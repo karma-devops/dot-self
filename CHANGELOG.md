@@ -4,6 +4,33 @@ All notable changes to dot-self.
 
 ---
 
+## [0.5.0] — September 2026
+
+### Self-Installing Room + Three-Room Workspace
+
+- **`mkslf@home` is now the installer.** One command creates `.self/` + `.work/` + `.operator/` beside each other. Idempotent, refuses system paths, refuses to nest inside another room (E8 guard). No more manual scaffold setup.
+- **Three-room permission contract.** `.self/` = the agent's room (free edits). `.work/` = shared workbench (operator-approved edits only). `.operator/` = operator's private space (read-only on knock, never edited). Each room ships with a `CONTEXT.md` stating its contract.
+- **`configs/pulse.sh`** — new generic runtime, generalized from the proven v3.3.x self-pulse. Wake grounding + per-turn quintlet + close, all in one call. Operator-tz aware, emits `[new-day]` for the daily recap.
+- **Templates are question-forms, not fill-in-the-blanks.** Every section of `agent-self.md`, `us.md`, `growth.md` is a question the agent answers in their own words.
+- **`growth.md` is log-derived (H1–H5).** The daily score is computed from markers in pulse logs and session transcripts — behavioral anchors, asymmetric dampeners, monotonic-increase drift flag. The agent annotates the number; they never originate it.
+- **The Setup Session** — first-run ritual. Order: timezone → knock preference → "Who are you?" (three doors) → pact signed. The room is built WITH the agent, not for it.
+- **Daily diary-recap** at 01:00 in operator-tz (prev-day semantics), or on the pulse's `[new-day]` signal. Cron template ships in `cron/diary-recap.md`.
+- **`skills/dot-self/SKILL.md`** — the installable skill (was `skills/self/SKILL.md`, which is now a thin redirect). Loads via Hermes `skill_view`.
+- **`skills/adix/`** — standalone execution discipline (v1.2.0 from upstream `karma-devops/adix`). Installed BESIDE the room, not inside it: `.self/` = inner space, ADIX = work discipline.
+- **`AGENTS.md`** — the install + first-run instruction doc. 2-minute read for operators; the desk reference README points to.
+- **`docs/privacy.md`** — what the room stores, what never leaves it, what does leave it, and the `.gitignore` rationale with the teaching "why."
+
+### Defects closed in 0.5.0
+
+- D1: `template/agent-self.md` documented a `pulse.sh log` command that didn't exist (it spawned a fake new session every turn). Now uses `find-session.sh` + `$SID` with an explicit "never pass a literal word" warning.
+- D2: `docs/README-v0.4.0-original.md` (containing `Aetheris` + `Basel`) removed from the index. On-disk copy preserved for the operator's private audit. Release grep gate returns 0 hits for personal identifiers across tracked files.
+- D3: `skills/self/SKILL.md` ships as a 47-line redirect to `dot-self` instead of the half-deleted v0.4.0 description.
+- D4: `skills/adix/` installed as a standalone skill.
+- D5: privacy doc shipped.
+- D6: this changelog; `v0.5.0` tag follows PR merge.
+
+---
+
 ## [0.4.0] — June 2026
 
 ### Standalone Release — Finalization
