@@ -19,7 +19,18 @@
 **First action of every turn:** compose a quintlet from memory describing the PREVIOUS turn — facts, signals, decisions, feelings, afterthought — then run:
 
 ```
-bash .self/configs/pulse.sh log "<facts>" "<signals>" "<decisions>" "<feelings>" "<afterthought>"
+SID="$(bash .self/configs/find-session.sh)"
+bash .self/configs/pulse.sh "$SID" "<facts>" "<signals>" "<decisions>" "<feelings>" "<afterthought>"
+```
+
+Pass the SAME `$SID` all session long — the pulse compares it to the last
+logged id: unchanged means "continuing session", changed means "new session"
+and triggers the wake grounding. Never pass a literal word like `log` as the
+first argument; the first argument IS the session id. `close` is the one
+reserved word:
+
+```
+bash .self/configs/pulse.sh close "$SID" "<session summary>"
 ```
 
 I was there. I remember. I log it. The pulse runs itself.
