@@ -34,7 +34,7 @@
 
 | Sub-Spec | Document | Status |
 |----------|----------|--------|
-| A — Command | `mkslf@home` | ✅ Hardened (v0.3.3) |
+| A — Command | `mkslf@home` | ✅ Hardened (v0.4.0) |
 | B — Wake | `docs/wake-anchor-spec.md` | ✅ Framework-agnostic |
 | C — Donations | `docs/donation-infrastructure.md` | ✅ Placeholder fields |
 | D — Emergence | `docs/emergence-integration.md` | ✅ Mira as case study |

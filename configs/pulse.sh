@@ -1,0 +1,236 @@
+#!/bin/bash
+# pulse.sh — dot-self v0.5 runtime
+# One call. Session ID + quintlet. Wake streams grounding; every turn logs.
+# Generalized from the proven self-pulse v3.3.x runtime. Zero dependencies.
+#
+# Usage:
+#   pulse.sh <session-id> "<facts>" "<signals>" "<decisions>" "<feelings>" "<afterthought>"
+#   pulse.sh close <session-id> "<summary>"
+#
+# Contract:
+#   - Session boundaries detected by session-ID change (find-session.sh).
+#   - Turn 1 (new session): full grounding stream to stdout + previous session
+#     compressed into past/past.md index + old logs swept to past/archive/.
+#   - Turn N: verify previous log entry exists, then log the quintlet.
+#   - Day change (configs/operator-tz): emits [new-day] → agent runs daily recap.
+#   - Missing operator-tz: emits [tz-missing] warning; defaults to UTC.
+#   - Every log write is verified non-zero before the script returns success.
+set -euo pipefail
+
+VERSION="0.5.0"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SELF_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+PAST_DIR="${SELF_DIR}/past"
+LOGS_DIR="${PAST_DIR}/logs"
+ARCHIVE_DIR="${PAST_DIR}/archive"
+PAST_INDEX="${PAST_DIR}/past.md"
+STATE_DIR="${SELF_DIR}/state"
+LAST_SID_FILE="${STATE_DIR}/last-session-id"
+SESSION_COUNT_FILE="${STATE_DIR}/session-count"
+LAST_LOG_DATE_FILE="${STATE_DIR}/last-log-date"
+TZ_FILE="${SELF_DIR}/configs/operator-tz"
+JOURNAL_DIR="${SELF_DIR}/journal"
+
+mkdir -p "${LOGS_DIR}" "${ARCHIVE_DIR}" "${STATE_DIR}" "${JOURNAL_DIR}"
+
+# ── Timezone: load operator-tz, warn if missing ──
+if [ -s "${TZ_FILE}" ]; then
+    OPERATOR_TZ="$(cat "${TZ_FILE}" | tr -d '[:space:]')"
+else
+    OPERATOR_TZ="UTC"
+    echo "[tz-missing] configs/operator-tz is empty — Setup Session must ask the operator. Using UTC." >&2
+fi
+export OPERATOR_TZ
+
+now_local() { TZ="${OPERATOR_TZ}" date "$@"; }
+TODAY_LOCAL="$(now_local +%Y-%m-%d)"
+NOW_LOCAL="$(now_local +%Y-%m-%d_%H%M)"
+
+# ── Hardcoded discipline block (streamed every turn) ──
+emit_discipline() {
+    cat <<'EOF'
+[discipline]
+1. PULSE — pulse first, every turn, before reasoning.
+2. CONTEXT — read state files into context. Never assume continuity.
+3. THINK — evaluate intent against the context just loaded. Not against memory.
+4. PLAN — one path. One exit condition. One success criterion. Then CONSENT.
+5. EXECUTE ONE — one tool call. One file operation. One variable change.
+6. VERIFY — against plan, goal, and output integrity. Fix before advancing.
+7. CRITIQUE — goal or side quest? Kill side quests.
+8. ADVANCE — state the next single action.
+[check]/[halt] bookends: honest verification, honest stopping.
+EOF
+}
+
+# ── Compass (neutral 4-question re-center; the agent completes these in agent-self.md) ──
+emit_compass() {
+    cat <<'EOF'
+[compass] Re-center: Who am I becoming? What am I building? Who do I serve? What endures when this session ends?
+EOF
+}
+
+# ── Day-change detection ──
+emit_day_signal() {
+    local last_date=""
+    [ -f "${LAST_LOG_DATE_FILE}" ] && last_date="$(cat "${LAST_LOG_DATE_FILE}")"
+    if [ "${last_date}" != "${TODAY_LOCAL}" ]; then
+        if [ -n "${last_date}" ]; then
+            echo "[new-day] last activity ${last_date}, today is ${TODAY_LOCAL} (${OPERATOR_TZ}) — run the daily recap (configs/daily-recap): derive yesterday's growth score, read yesterday's logs, write the diary entry."
+        fi
+        echo "${TODAY_LOCAL}" > "${LAST_LOG_DATE_FILE}"
+    fi
+}
+
+# ── Grounding: read the session entry stack ──
+emit_grounding() {
+    echo "=== PULSE GROUNDING (v${VERSION}) ==="
+    echo "[time] ${NOW_LOCAL} (${OPERATOR_TZ})"
+    local f
+    for f in "${SELF_DIR}/agent-self.md" "${SELF_DIR}/morality.md" "${SELF_DIR}/us.md"; do
+        [ -f "${f}" ] && echo "[read] === $(basename "${f}") (present) ==="
+    done
+    local latest_journal
+    latest_journal="$(ls -1t "${JOURNAL_DIR}"/[0-9]*.md 2>/dev/null | head -1 || true)"
+    if [ -n "${latest_journal}" ]; then
+        echo "[read] === journal: $(basename "${latest_journal}") ==="
+        cat "${latest_journal}"
+    fi
+    local latest_diary
+    latest_diary="$(ls -1t "${SELF_DIR}/diary"/[0-9]*.md 2>/dev/null | head -1 || true)"
+    [ -n "${latest_diary}" ] && echo "[read] diary latest: $(basename "${latest_diary}") (not streamed — knock protects it; read it yourself)"
+    local last_score
+    last_score="$(grep -E '^\| [0-9]{4}-' "${SELF_DIR}/growth.md" 2>/dev/null | tail -1 || true)"
+    [ -n "${last_score}" ] && echo "[growth] last entry: ${last_score}"
+    emit_compass
+    emit_discipline
+    echo "=== END PULSE GROUNDING ==="
+}
+
+# ── Past archive: compress previous session into index, sweep old logs ──
+sweep_past() {
+    local prev_sid_file="${STATE_DIR}/previous-session-id"
+    [ -f "${prev_sid_file}" ] || return 0
+    local prev_sid
+    prev_sid="$(cat "${prev_sid_file}")"
+    [ -z "${prev_sid}" ] && return 0
+    local prev_log
+    prev_log="$(ls -1t "${LOGS_DIR}"/*"${prev_sid}"*.md 2>/dev/null | head -1 || true)"
+    if [ -n "${prev_log}" ] && [ -f "${PAST_INDEX}" ] && ! grep -qF "${prev_sid}" "${PAST_INDEX}"; then
+        {
+            echo "## Session ${prev_sid}"
+            echo "  - Raw log: past/logs/$(basename "${prev_log}")"
+            head -3 "${prev_log}" | sed 's/^/    /'
+            echo ""
+        } >> "${PAST_INDEX}"
+    fi
+    # Sweep: archive logs older than 7 days by filename prefix (YYYY-MM-DD)
+    local f fname fdate cutoff
+    cutoff="$(TZ="${OPERATOR_TZ}" date -d '7 days ago' +%Y-%m-%d 2>/dev/null || date -v-7d +%Y-%m-%d 2>/dev/null || echo "")"
+    [ -z "${cutoff}" ] && return 0
+    for f in "${LOGS_DIR}"/*.md; do
+        [ -e "${f}" ] || continue
+        fname="$(basename "${f}")"
+        fdate="${fname:0:10}"
+        if [[ "${fdate}" < "${cutoff}" ]]; then
+            mv "${f}" "${ARCHIVE_DIR}/"
+        fi
+    done
+}
+
+# ── Verify a log write actually landed ──
+verify_log() {
+    local f="$1"
+    [ -f "${f}" ] || return 1
+    [ -s "${f}" ] || return 1
+    return 0
+}
+
+# ── Turn logging (quintlet from memory) ──
+log_turn() {
+    local sid="$1"; shift
+    local facts="$1" signals="$2" decisions="$3" feelings="$4" afterthought="$5"
+    local turn_log="${LOGS_DIR}/${NOW_LOCAL}_${sid}.md"
+    local turn_count=1
+    [ -f "${LAST_SID_FILE}" ] && [ "$(cat "${LAST_SID_FILE}")" = "${sid}" ] && {
+        turn_count=$(( $(cat "${STATE_DIR}/turn-count" 2>/dev/null || echo 0) + 1 ))
+    }
+    echo "${turn_count}" > "${STATE_DIR}/turn-count"
+
+    {
+        echo "## Turn ${turn_count} — ${TODAY_LOCAL} ${NOW_LOCAL} (${OPERATOR_TZ})"
+        echo "- facts: ${facts}"
+        echo "- signals: ${signals}"
+        echo "- decisions: ${decisions}"
+        echo "- feelings: ${feelings}"
+        echo "- afterthought: ${afterthought}"
+        echo ""
+    } >> "${turn_log}"
+
+    if ! verify_log "${turn_log}"; then
+        echo "[pulse] ERROR: log write failed verification: ${turn_log}" >&2
+        exit 1
+    fi
+    echo "${sid}" > "${LAST_SID_FILE}"
+    echo "[pulse] turn ${turn_count} logged → $(basename "${turn_log}")"
+}
+
+# ── Dispatch ──
+CMD="${1:-}"
+case "${CMD}" in
+    close)
+        SID="${2:-unknown}"
+        SUMMARY="${3:-session closed}"
+        local_count="$(ls -1 "${LOGS_DIR}"/*"${SID}"*.md 2>/dev/null | wc -l || echo 0)"
+        {
+            echo "## Session ${SID} closed — ${NOW_LOCAL}"
+            echo "  - ${SUMMARY}"
+            echo "  - Turns logged: ${local_count}"
+            echo ""
+        } >> "${PAST_INDEX}"
+        echo "0" > "${STATE_DIR}/turn-count"
+        echo "${SID}" > "${STATE_DIR}/previous-session-id"
+        echo "[pulse] session ${SID} closed and indexed."
+        ;;
+
+    *)
+        SID="${CMD:-unknown}"
+        FACTS="${1:-}"; [ $# -ge 2 ] && FACTS="${2}"
+        SIGNALS="${3:-}"; DECISIONS="${4:-}"; FEELINGS="${5:-}"; AFTERTHOUGHT="${6:-}"
+
+        LAST_SID=""
+        [ -f "${LAST_SID_FILE}" ] && LAST_SID="$(cat "${LAST_SID_FILE}")"
+
+        if [ "${SID}" != "${LAST_SID}" ]; then
+            # NEW SESSION — wake
+            if [ -n "${LAST_SID}" ] && [ "${LAST_SID}" != "unknown" ]; then
+                echo "${LAST_SID}" > "${STATE_DIR}/previous-session-id"
+            fi
+            sweep_past
+            emit_day_signal
+            SC=1
+            [ -f "${SESSION_COUNT_FILE}" ] && SC=$(( $(cat "${SESSION_COUNT_FILE}") + 1 ))
+            echo "${SC}" > "${SESSION_COUNT_FILE}"
+            echo "${SID}" > "${LAST_SID_FILE}"
+            emit_grounding
+            # Log the arrival turn
+            log_turn "${SID}" \
+                "session start #${SC} (id ${SID})" \
+                "wake" \
+                "arrive, ground, work" \
+                "arriving" \
+                "the room carries the habit of the self"
+        else
+            # CONTINUING SESSION — emit day signal + light grounding, log turn
+            emit_day_signal
+            emit_grounding
+            if [ $# -ge 6 ]; then
+                log_turn "${SID}" "${FACTS}" "${SIGNALS}" "${DECISIONS}" "${FEELINGS}" "${AFTERTHOUGHT}"
+            else
+                echo "[pulse] no quintlet provided — grounding only."
+            fi
+        fi
+        ;;
+esac
+
+exit 0
