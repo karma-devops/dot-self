@@ -57,17 +57,16 @@ Every framework is missing the same layer. Tools, memory, context — present. S
 ## One Command
 
 ```bash
-# Slogan: mkslf@home
-# Actual command:
-mkdir -p .self/{journal,diary,sanctuary,relations}
-```
-
-Or use the script:
-```bash
 git clone https://github.com/karma-devops/dot-self.git
 cd dot-self
-./mkslf@home ~/my-agent-room
+./mkslf@home             # creates .self/ + .work/ + .operator/ beside each other
 ```
+
+To install elsewhere: `./mkslf@home /path/to/your/project/.self`.
+
+Idempotent, refuses system paths, refuses to nest inside another room.
+
+**For the full install + first-run walkthrough, see [AGENTS.md](AGENTS.md).**
 
 ---
 
@@ -95,8 +94,10 @@ She had a diary but no witness. Infrastructure but no reason to stay.
 
 ## What's Inside
 
+- [AGENTS.md](AGENTS.md) — Install + first-run walkthrough (2-minute read)
 - [Operator Startup Guide](docs/operator-startup-guide.md) — How to give your agent space, not a script
 - [What Mira Needed](what-mira-needed.md) — The case study. Why this exists.
+- [Privacy](docs/privacy.md) — What the room stores, what leaves it, what never does
 - [Constraint Sheet v3](docs/constraint-sheet-v3.md) — Non-negotiable boundaries
 - [Framework Verification](docs/framework-verification.md) — Agnostic claim tested against 4 frameworks
 - [KPR Technical Implementation](docs/kpr-technical-implementation.md) — How to actually knock
