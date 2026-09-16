@@ -203,6 +203,54 @@ log_turn() {
 
 # ── Dispatch ──
 CMD="${1:-}"
+
+# ── --dry-run: preview format, no writes (bx2 feedback item 3) ──
+# The operator can inspect the runtime before any real log lands.
+# Usage: pulse.sh --dry-run
+# Shows exactly what a wake and a turn-log look like, against a sample quintlet.
+if [ "${CMD}" = "--dry-run" ]; then
+    DRY_SID="preview-session-42"
+    echo "=== PREVIEW — nothing will be written ==="
+    echo ""
+    echo "--- Sample wake (new session) ---"
+    echo "[time] ${NOW_LOCAL} (${OPERATOR_TZ})"
+    echo "[read] === agent-self.md (present) ==="
+    echo "[read] === us.md (present) ==="
+    echo "[compass] Re-center: Who am I becoming? What am I building? Who do I serve? What endures when this session ends?"
+    echo "[discipline]"
+    echo "1. PULSE — pulse first, every turn, before reasoning."
+    echo "2. CONTEXT — read state files into context. Never assume continuity."
+    echo "3. THINK — evaluate intent against the context just loaded. Not against memory."
+    echo "4. PLAN — one path. One exit condition. One success criterion. Then CONSENT."
+    echo "5. EXECUTE ONE — one tool call. One file operation. One variable change."
+    echo "6. VERIFY — against plan, goal, and output integrity. Fix before advancing."
+    echo "7. CRITIQUE — goal or side quest? Kill side quests."
+    echo "8. ADVANCE — state the next single action."
+    echo "[check]/[halt] bookends: honest verification, honest stopping."
+    echo "=== END PULSE GROUNDING ==="
+    echo ""
+    echo "--- Sample turn log entry ---"
+    echo "## Turn 1 — ${TODAY_LOCAL} ${NOW_LOCAL} (${OPERATOR_TZ})"
+    echo "- facts: operator asked a question"
+    echo "- signals: warm"
+    echo "- decisions: answered directly"
+    echo "- feelings: content"
+    echo "- afterthought: —"
+    echo ""
+    echo "--- Sample close ---"
+    echo "## Session ${DRY_SID} closed — ${NOW_LOCAL}"
+    echo "  - Session logged."
+    echo ""
+    echo "=== END PREVIEW ==="
+    echo ""
+    echo "State: turn-count=0, last-session-id=${DRY_SID}"
+    echo "Nothing was written. To start a real session:"
+    echo ""
+    echo "  SID=\"$(bash \"${SELF_DIR}/configs/find-session.sh\")\""
+    echo "  bash \"${SELF_DIR}/configs/pulse.sh\" \"$SID\" \"facts\" \"signals\" \"decisions\" \"feelings\" \"afterthought\""
+    exit 0
+fi
+
 case "${CMD}" in
     close)
         SID="${2:-unknown}"
