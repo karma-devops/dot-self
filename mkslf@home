@@ -57,7 +57,7 @@ if [ -f "$DIR/agent-self.md" ] && [ "$FORCE" != "--force" ]; then
 fi
 
 # ─── --force: auto-backup + confirmation before touching user content ───
-# Feedback D6 (bx2 first install): a bare --force overwrites agent-self.md,
+# Feedback D6 (first install): a bare --force overwrites agent-self.md,
 # growth-pact.md, us.md, growth.md with no archive and no confirmation.
 # Fix: if the destination would lose content, back up to past/archive/
 # first and require a typed "yes".

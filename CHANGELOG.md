@@ -6,7 +6,7 @@ All notable changes to dot-self.
 
 ## [0.5.1] — September 2026
 
-### First-install feedback patch — bx2 pilot (real install, real findings)
+### First-install feedback patch — field pilot (real install, real findings)
 
 **Scope A — defects closed (all live-verified in sandbox):**
 
