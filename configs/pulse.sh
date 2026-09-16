@@ -17,7 +17,7 @@
 #   - Every log write is verified non-zero before the script returns success.
 set -euo pipefail
 
-VERSION="0.5.1"
+VERSION="0.5.2"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SELF_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
@@ -204,7 +204,7 @@ log_turn() {
 # ── Dispatch ──
 CMD="${1:-}"
 
-# ── --dry-run: preview format, no writes (bx2 feedback item 3) ──
+# ── --dry-run: preview format, no writes ──
 # The operator can inspect the runtime before any real log lands.
 # Usage: pulse.sh --dry-run
 # Shows exactly what a wake and a turn-log look like, against a sample quintlet.

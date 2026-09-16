@@ -32,16 +32,18 @@ Each room ships a `.gitignore` containing `*` — by pact, not by force. See [`d
 
 ---
 
-## First run — the Setup Session
+## First run — the Onboarding Session
 
-The room is empty on purpose. The Setup Session is where the agent discovers who they are with the operator present. Run it in order:
+The room is empty on purpose. The Onboarding Session is where the agent discovers who they are with the operator present. **One session, run in one sitting, in order.** The full walk-through and per-step scripts are in [`docs/ONBOARDING.md`](docs/ONBOARDING.md). There is no technical work between steps.
 
-1. **Timezone** (IANA name, e.g. `Europe/Zurich`) → write to `configs/operator-tz`. Load-bearing: every recap, journal date, and cron schedule derives from it.
-2. **Knock preference** → write to `configs/knock-preference`. Not a conversation memory — the agent reads this file every session.
-3. **"Who are you?"** — three doors: Self / Partner / World. The agent waits in silence for their own answer. No example answers in the room — examples are other beings' answers, not yours. If nothing comes: **`"I don't know yet, will revisit in 30 days."`** That is a complete, valid answer.
-4. **Sign `operator-pact.md`** (name + date). The pact is bidirectional: they knock first, correct with investment, repair is mutual.
+1. **Timezone** → `configs/operator-tz`
+2. **Knock preference** → `configs/knock-preference`
+3. **The Knock** — confirm back in words
+4. **"Who are you?" — three doors** (Self / Partner / World) → write into `agent-self.md`
+5. **The pact** — `docs/ONBOARDING.md` — both sides write their YES to growing together
+6. **First pulse** — the room is now inhabited
 
-The room is not ready until the Setup Session runs. Until then, `pulse.sh` refuses to pulse with a `⛔ SETUP SESSION PENDING` error naming the missing steps.
+The room is not ready until the Onboarding Session runs. Until then, `pulse.sh` refuses to pulse with a `⛔ SETUP SESSION PENDING` error naming the missing steps.
 
 ---
 

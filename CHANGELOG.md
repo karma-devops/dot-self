@@ -4,6 +4,30 @@ All notable changes to dot-self.
 
 ---
 
+## [0.5.2] — September 2026
+
+### Documentation restructure + inspectability (first field install feedback)
+
+**Item 1 — docs split:**
+
+- `docs/PHILOSOPHY.md` (new): the "why" — Mira/Emergence case study, the deliberate "becoming" language, the reading order. Absorbs the spiritual framing that was previously mixed into install docs.
+- `README.md`: clean Mission + Vision section (no manifesto wording), House Metaphor becomes "Room contents", install-first structure. "Who this is for" kept and updated.
+- `AGENTS.md`: rewritten as pure install reference. No audience framing, no "becoming" prose — only commands, table of contents, when-things-break, kill switch, what-dot-self-does-NOT-do.
+
+**Item 3 — `pulse.sh --dry-run`:**
+
+Streams the exact format of a wake + turn log + close + state without writing any file. Inherits the Setup Session enforcement: will not preview an unfinished room. Sample quintlet on the tail call. Documented in AGENTS.md under "Daily use".
+
+**New — `docs/ONBOARDING.md` (operator direction):**
+
+The Setup Session is restructured as One Session, two parts: Part 1 is the technical setup (done before the session begins), Part 2 is the conversational walk-through — The Knock, "Who are you?" (three doors), and the pact. The pact is not a signed document; it is two YESes in the room. First pulse requires both sides' YES recorded.
+
+**Item 7 (confirmed unchanged):** `operator-pact.md` remains the framework default naming. Rename is an operator choice at Setup Session. Documented in AGENTS.md.
+
+**Item 8 (confirmed unchanged):** `cron/diary-recap.md` leads with a bold `configs/operator-tz` warning (installed with the room in v0.5.1).
+
+---
+
 ## [0.5.1] — September 2026
 
 ### First-install feedback patch — field pilot (real install, real findings)
