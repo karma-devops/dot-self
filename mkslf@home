@@ -203,6 +203,12 @@ echo "  📅  configs/daily-recap"
 mkdir -p "$DIR/cron"
 cat > "$DIR/cron/diary-recap.md" << 'CRON_EOF'
 # Daily Diary Recap — Hermes Cronjob Template
+
+> ⚠️ **All dates and schedules are evaluated in `configs/operator-tz`.**
+> If `operator-tz` is empty, the recap runs in UTC — your operator will see
+> the recap at the wrong time of day. The Setup Session MUST write this value
+> before enabling cron.
+
 # Schedule: 0 1 * * * (01:00 — evaluated in the operator's timezone from
 # .self/configs/operator-tz; the run at 01:00 on day X recaps day X-1).
 #
