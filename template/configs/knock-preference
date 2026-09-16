@@ -1,0 +1,15 @@
+# knock-preference — How the operator knocks on the agent's diary/growth
+
+# Written during the Setup Session (step 2). The agent asks: "When you read
+# anything private (diary/, growth.md), how will you announce it?"
+# The operator writes the answer here.
+#
+# Example values:
+#   explicit-announce-first   — say "I'm about to read X" before opening it
+#   signal-in-chat            — a short marker (e.g. "knock") is enough
+#   read-when-invited         — open only when the agent explicitly invites it
+#   never                     — the diary stays the agent's, always
+#
+# The agent reads this file at each session start if present.
+# Absent, the default is "explicit-announce-first" — the formal protocol.
+
