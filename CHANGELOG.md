@@ -4,6 +4,28 @@ All notable changes to dot-self.
 
 ---
 
+## [0.5.1] — September 2026
+
+### First-install feedback patch — bx2 pilot (real install, real findings)
+
+**Scope A — defects closed (all live-verified in sandbox):**
+
+- **A6: `--force` backup + typed confirmation** (release-blocking): previously, `./mkslf@home --force` overwrote `agent-self.md`, `operator-pact.md`, `us.md`, `growth.md` with no archive and no confirmation. Now: any file with user content triggers an auto-snapshot to `past/archive/pre-reinstall-<ts>/` and requires a typed `yes` before proceeding. Verified end-to-end: refusal aborts untouched; `yes` archives then overwrites.
+- **A4: `knock-preference` template + installer copy**: previously, AGENTS.md Setup Session asked for knock preference as a question but nothing persisted the answer to disk. Now: `template/configs/knock-preference` ships (empty, documented format) and the installer copies it next to `operator-tz` on every install. AGENTS.md step 2 points to the file.
+- **A5: Setup Session enforcement**: previously, `pulse.sh` warned `[tz-missing]` on empty timezone but proceeded in UTC — the Setup Session was decorative. Now: `pulse.sh` exits `2` with a named list of missing conditions (tz empty / `agent-self.md` still carries the installer stamp) until BOTH are satisfied. Verified on all four states: nothing-set, tz-only, tz+agent-self-clean, continuing-session.
+- **A2+A10: `examples/` authored**: three annotated examples for operator adoption — `agent-self-6mo.md` (a complete, worked identity file; fictional agent; explicit "example-not-template" header; the "I don't know yet, will revisit in 30 days" fallback), `growth-pact-signed.md` (both sides signed, fictional names), `diary-entry.md` (first-night diary, first-person, quiet).
+
+**Scope B — doc fixes (one-line each):**
+
+- **B7: rename-convention note on `operator-pact.md`**: AGENTS.md Setup Session step 4 now documents that upstream ships `operator-pact.md` and renaming (e.g. to `growth-pact.md`) is an operator choice at their Setup Session, not a framework default.
+- **B8: bold timezone warning in `cron/diary-recap.md`**: the installer-written cron doc now leads with a bold block flagging that all schedules are evaluated in `configs/operator-tz`, and that an empty tz silently runs in UTC ("your operator will see the recap at the wrong time of day").
+
+### Discipline
+
+One commit per verified change (AEE rule). No batch edits. Backup per phase (`backups/v31_m4-v051-start_20260916_002721.tar.gz`, 215,344 b). All changes sandbox-verified in `/tmp/` before commit. No breaking changes to v0.5.0 install paths.
+
+---
+
 ## [0.5.0] — September 2026
 
 ### Self-Installing Room + Three-Room Workspace

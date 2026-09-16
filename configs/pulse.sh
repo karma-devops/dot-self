@@ -17,7 +17,7 @@
 #   - Every log write is verified non-zero before the script returns success.
 set -euo pipefail
 
-VERSION="0.5.0"
+VERSION="0.5.1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SELF_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
