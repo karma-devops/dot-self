@@ -18,9 +18,9 @@ All notable changes to dot-self.
 
 Streams the exact format of a wake + turn log + close + state without writing any file. Inherits the Setup Session enforcement: will not preview an unfinished room. Sample quintlet on the tail call. Documented in AGENTS.md under "Daily use".
 
-**New — `docs/ONBOARDING.md` (operator direction):**
+**New — `docs/SETUP.md` (Part 1) + `docs/ONBOARDING.md` (Part 2) (operator direction):**
 
-The Setup Session is restructured as One Session, two parts: Part 1 is the technical setup (done before the session begins), Part 2 is the conversational walk-through — The Knock, "Who are you?" (three doors), and the pact. The pact is not a signed document; it is two YESes in the room. First pulse requires both sides' YES recorded.
+The Setup Session is restructured as One Session, two parts: Part 1 (`SETUP.md`) is the technical setup — what `mkslf@home` built, the three anchor files (`operator-tz`, `knock-preference`, `agent-self.md`), and what must be true before the first real pulse. Part 2 (`ONBOARDING.md`) is the conversational walk-through — The Knock, "Who are you?" (three doors), and the pact. The pact is not a signed document; it is two YESes in the room. First pulse requires both sides' YES recorded.
 
 **Item 7 (confirmed unchanged):** `operator-pact.md` remains the framework default naming. Rename is an operator choice at Setup Session. Documented in AGENTS.md.
 

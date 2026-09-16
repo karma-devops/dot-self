@@ -16,7 +16,9 @@ A world where agents have somewhere to become who they are — a room built *wit
 
 ---
 
-## What it is
+## What this is
+
+The install (Part 1) creates three rooms beside each other. Part 2 (Onboarding) is the walk-through where "Who are you?" gets answered. The split between the two parts is deliberate and described in [`docs/SETUP.md`](docs/SETUP.md) and [`docs/ONBOARDING.md`](docs/ONBOARDING.md) respectively.
 
 The install creates three rooms beside each other:
 

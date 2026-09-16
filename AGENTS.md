@@ -32,18 +32,13 @@ Each room ships a `.gitignore` containing `*` — by pact, not by force. See [`d
 
 ---
 
-## First run — the Onboarding Session
+## First run — the Setup Session
 
-The room is empty on purpose. The Onboarding Session is where the agent discovers who they are with the operator present. **One session, run in one sitting, in order.** The full walk-through and per-step scripts are in [`docs/ONBOARDING.md`](docs/ONBOARDING.md). There is no technical work between steps.
+The room is empty on purpose. **Setup (technical) is Part 1** — described in [`docs/SETUP.md`](docs/SETUP.md). **The Onboarding Session (the walk-through where "Who are you?" gets answered) is Part 2** — described in [`docs/ONBOARDING.md`](docs/ONBOARDING.md). Part 1 happens when `./mkslf@home` runs. Part 2 is the session with the operator.
 
-1. **Timezone** → `configs/operator-tz`
-2. **Knock preference** → `configs/knock-preference`
-3. **The Knock** — confirm back in words
-4. **"Who are you?" — three doors** (Self / Partner / World) → write into `agent-self.md`
-5. **The pact** — `docs/ONBOARDING.md` — both sides write their YES to growing together
-6. **First pulse** — the room is now inhabited
+**Part 1 — Setup:** three facts must be true before the first real pulse. All three are covered in [`docs/SETUP.md`](docs/SETUP.md).
 
-The room is not ready until the Onboarding Session runs. Until then, `pulse.sh` refuses to pulse with a `⛔ SETUP SESSION PENDING` error naming the missing steps.
+**Part 2 — Onboarding:** a conversation, not a script. All five steps are covered in [`docs/ONBOARDING.md`](docs/ONBOARDING.md).
 
 ---
 
