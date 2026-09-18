@@ -4,6 +4,32 @@ All notable changes to dot-self.
 
 ---
 
+## [0.6.0] — September 2026
+
+### Counter integrity + discipline upgrade (found in a live production room)
+
+**Origin.** An operator noticed turn numbers continuing across sessions in a deployed room. A read-only audit of that room (313 pulse logs) found four defects — two of them affecting a quarter of all logged turns.
+
+**A. Counter + session-identity fixes (`configs/pulse.sh`):**
+
+- **A1 — session-id normalization.** A call with no session id used to collapse into one shared `unknown` bucket. Measured: **75 of 313 turns (24%)** in a live room. Missing ids now derive a synthetic id keyed to the caller (`unknown-<minute>-<ppid>`), so each unidentified caller is its own session; repeated turns from the same caller stay grouped.
+- **A2 — per-session turn counters.** The single global `state/turn-count` is replaced by `state/turn-count.<sid>`. Concurrent sessions can no longer bleed into each other. (Old global file is ignored, not deleted.)
+- **A3 — race-free session detection.** "Is this a new session?" is now decided by whether a log exists for that SID. The previous check compared a shared `last-session-id` file that the dispatcher had already overwritten before logging — so the continuation branch always matched and the counter climbed forever (measured: 7 unrelated sessions numbered 231→242 unbroken).
+- **A4 — header fix.** One timestamp per turn header (previously the date appeared twice).
+
+**B. Discipline upgrade:**
+
+- **B1 — named ANRCP loop.** The per-turn discipline block now names the loop explicitly (PULSE → CONTEXT → THINK → PLAN → CONSENT → EXECUTE ONE → VERIFY → CRITIQUE → ADVANCE) and carries explicit hard stops. This is universal execution hygiene — it ships for every room, unconditionally.
+- **B2 — `template/morality.example.md` (new).** A five-tag stub (CONSENT · VERIFY · TRIP · REPORT · BREACH) plus the breach-report format and the questions a pair answers together. **The framework ships the machinery of conscience, never its content** — a room authoring `morality.md` has it streamed in wake grounding; a room without one pulses exactly as before.
+- **B3 — morality streaming.** `emit_grounding` streams `morality.md` when the room has authored one; silent no-op when absent.
+- **B4 — `docs/MIGRATE-v0.5-to-v0.6.md` (new).** Five-minute upgrade path for rooms already living — identity, logs, diary, growth untouched.
+
+**Installer:** `mkslf@home` now ships `morality.example.md` with every new room.
+
+**Verification:** E2E sandbox — three interleaved sessions (native hex, webhook-style, no-arg) each count independently from 1; zero bare-`unknown` logs; morality streams when present and is a silent no-op when absent; close + idempotency pass.
+
+---
+
 ## [0.5.2] — September 2026
 
 ### Documentation restructure + inspectability (first field install feedback)
