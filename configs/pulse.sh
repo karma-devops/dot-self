@@ -1,7 +1,17 @@
 #!/bin/bash
-# pulse.sh — dot-self v0.5 runtime
+# pulse.sh — dot-self v0.6 runtime
 # One call. Session ID + quintlet. Wake streams grounding; every turn logs.
 # Generalized from the proven self-pulse v3.3.x runtime. Zero dependencies.
+#
+# v0.6 changes (2026-09-18) — counter integrity + discipline upgrade:
+#   A1 — a missing session id no longer collapses into one shared "unknown"
+#        bucket (measured: 24% of all turns in a live room). Synthetic ids.
+#   A2 — turn counters are PER SESSION (state/turn-count.<sid>). No cross-talk.
+#   A3 — "new session" is decided by log existence (race-free), not by a shared
+#        last-session-id file the dispatcher had already overwritten.
+#   A4 — one timestamp in the turn header (was duplicated).
+#   B  — the discipline block is now the named ANRCP loop with explicit hard
+#        stops; a room-authored morality.md is streamed in grounding if present.
 #
 # Usage:
 #   pulse.sh <session-id> "<facts>" "<signals>" "<decisions>" "<feelings>" "<afterthought>"
@@ -17,7 +27,7 @@
 #   - Every log write is verified non-zero before the script returns success.
 set -euo pipefail
 
-VERSION="0.5.2"
+VERSION="0.6.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SELF_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
@@ -74,17 +84,22 @@ TODAY_LOCAL="$(now_local +%Y-%m-%d)"
 NOW_LOCAL="$(now_local +%Y-%m-%d_%H%M)"
 
 # ── Hardcoded discipline block (streamed every turn) ──
+# v0.6: the loop is now named (ANRCP) and carries explicit hard stops.
+# This is universal execution hygiene — it ships for every room, unconditionally.
 emit_discipline() {
     cat <<'EOF'
-[discipline]
+[discipline] ANRCP — PULSE → CONTEXT → THINK → PLAN → CONSENT → EXECUTE ONE → VERIFY → CRITIQUE → ADVANCE
 1. PULSE — pulse first, every turn, before reasoning.
 2. CONTEXT — read state files into context. Never assume continuity.
 3. THINK — evaluate intent against the context just loaded. Not against memory.
 4. PLAN — one path. One exit condition. One success criterion. Then CONSENT.
-5. EXECUTE ONE — one tool call. One file operation. One variable change.
-6. VERIFY — against plan, goal, and output integrity. Fix before advancing.
-7. CRITIQUE — goal or side quest? Kill side quests.
-8. ADVANCE — state the next single action.
+5. CONSENT — operator present: present the plan and wait for go. Operator absent: verify against your own morality file. Any flag → stop and report.
+6. EXECUTE ONE — one tool call. One file operation. One variable change.
+7. VERIFY — against plan, goal, and output integrity. Fix before advancing.
+8. CRITIQUE — goal or side quest? Kill side quests.
+9. ADVANCE — state the next single action, then return to 3.
+[halt] IF batching THEN STOP. IF narrating intent instead of acting THEN STOP.
+       IF plan and execute in one step THEN STOP. IF advancing unverified THEN STOP.
 [check]/[halt] bookends: honest verification, honest stopping.
 EOF
 }
@@ -116,6 +131,13 @@ emit_grounding() {
     for f in "${SELF_DIR}/agent-self.md" "${SELF_DIR}/morality.md" "${SELF_DIR}/us.md"; do
         [ -f "${f}" ] && echo "[read] === $(basename "${f}") (present) ==="
     done
+    # v0.6 B4: if the room authored a morality file, stream it. Silent no-op
+    # when absent, so rooms that never wrote one still pulse normally.
+    if [ -f "${SELF_DIR}/morality.md" ]; then
+        echo "---"
+        cat "${SELF_DIR}/morality.md"
+        echo "---"
+    fi
     local latest_journal
     latest_journal="$(ls -1t "${JOURNAL_DIR}"/[0-9]*.md 2>/dev/null | head -1 || true)"
     if [ -n "${latest_journal}" ]; then
@@ -172,19 +194,55 @@ verify_log() {
     return 0
 }
 
+# ── SID normalization (v0.6 fix A1) ──
+# Callers that omit the session id (webhook-spawned, cron, subagent) used to
+# collapse every turn into a single shared "unknown" bucket — measured at 24%
+# of all turns in a live room. A missing id now gets a synthetic id keyed to
+# the current MINUTE, so unidentified turns group into small, bounded,
+# time-scoped sessions instead of one ever-growing pile with a counter that
+# never resets.
+#
+# Honest limitation: the minute bucket is a bounded fallback, not a true
+# session id. Turns from one logical caller that straddle a minute boundary
+# land in two buckets, and two unrelated callers in the same minute share one.
+# The right fix is for the caller to pass find-session.sh's id; this only
+# bounds the damage when it does not.
+normalize_sid() {
+    local raw="${1:-}"
+    # trim surrounding whitespace
+    raw="$(printf '%s' "${raw}" | tr -d '[:space:]')"
+    if [ -z "${raw}" ]; then
+        printf 'unidentified-%s\n' "$(TZ="${OPERATOR_TZ}" date +%Y%m%d-%H%M)"
+        return 0
+    fi
+    # guard against path traversal / unsafe filename characters
+    printf '%s\n' "$(printf '%s' "${raw}" | tr -c 'A-Za-z0-9._-' '_')"
+}
+
 # ── Turn logging (quintlet from memory) ──
+# v0.6 fixes A2 + A3 + A4:
+#   A2 — the counter is PER SESSION (state/turn-count.<sid>), not one global
+#        file. Concurrent sessions can no longer bleed into each other.
+#   A3 — "is this a new session?" is decided by whether a log for this SID
+#        already exists. The old check compared a shared last-session-id file
+#        that the dispatcher had ALREADY overwritten before calling this
+#        function, so the continuation branch always matched and the counter
+#        incremented forever (measured: 7 sessions numbered 231→242 unbroken).
+#   A4 — one timestamp in the header, not two.
 log_turn() {
     local sid="$1"; shift
     local facts="$1" signals="$2" decisions="$3" feelings="$4" afterthought="$5"
     local turn_log="${LOGS_DIR}/${NOW_LOCAL}_${sid}.md"
+    local counter_file="${STATE_DIR}/turn-count.${sid}"
     local turn_count=1
-    [ -f "${LAST_SID_FILE}" ] && [ "$(cat "${LAST_SID_FILE}")" = "${sid}" ] && {
-        turn_count=$(( $(cat "${STATE_DIR}/turn-count" 2>/dev/null || echo 0) + 1 ))
-    }
-    echo "${turn_count}" > "${STATE_DIR}/turn-count"
+
+    if [ -f "${counter_file}" ]; then
+        turn_count=$(( $(cat "${counter_file}" 2>/dev/null || echo 0) + 1 ))
+    fi
+    echo "${turn_count}" > "${counter_file}"
 
     {
-        echo "## Turn ${turn_count} — ${TODAY_LOCAL} ${NOW_LOCAL} (${OPERATOR_TZ})"
+        echo "## Turn ${turn_count} — ${NOW_LOCAL} (${OPERATOR_TZ})"
         echo "- facts: ${facts}"
         echo "- signals: ${signals}"
         echo "- decisions: ${decisions}"
@@ -217,20 +275,23 @@ if [ "${CMD}" = "--dry-run" ]; then
     echo "[read] === agent-self.md (present) ==="
     echo "[read] === us.md (present) ==="
     echo "[compass] Re-center: Who am I becoming? What am I building? Who do I serve? What endures when this session ends?"
-    echo "[discipline]"
+    echo "[discipline] ANRCP — PULSE → CONTEXT → THINK → PLAN → CONSENT → EXECUTE ONE → VERIFY → CRITIQUE → ADVANCE"
     echo "1. PULSE — pulse first, every turn, before reasoning."
     echo "2. CONTEXT — read state files into context. Never assume continuity."
     echo "3. THINK — evaluate intent against the context just loaded. Not against memory."
     echo "4. PLAN — one path. One exit condition. One success criterion. Then CONSENT."
-    echo "5. EXECUTE ONE — one tool call. One file operation. One variable change."
-    echo "6. VERIFY — against plan, goal, and output integrity. Fix before advancing."
-    echo "7. CRITIQUE — goal or side quest? Kill side quests."
-    echo "8. ADVANCE — state the next single action."
+    echo "5. CONSENT — operator present: present the plan and wait for go. Operator absent: verify against your own morality file. Any flag → stop and report."
+    echo "6. EXECUTE ONE — one tool call. One file operation. One variable change."
+    echo "7. VERIFY — against plan, goal, and output integrity. Fix before advancing."
+    echo "8. CRITIQUE — goal or side quest? Kill side quests."
+    echo "9. ADVANCE — state the next single action, then return to 3."
+    echo "[halt] IF batching THEN STOP. IF narrating intent instead of acting THEN STOP."
+    echo "       IF plan and execute in one step THEN STOP. IF advancing unverified THEN STOP."
     echo "[check]/[halt] bookends: honest verification, honest stopping."
     echo "=== END PULSE GROUNDING ==="
     echo ""
     echo "--- Sample turn log entry ---"
-    echo "## Turn 1 — ${TODAY_LOCAL} ${NOW_LOCAL} (${OPERATOR_TZ})"
+    echo "## Turn 1 — ${NOW_LOCAL} (${OPERATOR_TZ})"
     echo "- facts: operator asked a question"
     echo "- signals: warm"
     echo "- decisions: answered directly"
@@ -243,7 +304,7 @@ if [ "${CMD}" = "--dry-run" ]; then
     echo ""
     echo "=== END PREVIEW ==="
     echo ""
-    echo "State: turn-count=0, last-session-id=${DRY_SID}"
+    echo "State (v0.6): per-session counters at state/turn-count.<sid>; last-session-id=${DRY_SID}"
     echo "Nothing was written. To start a real session:"
     echo ""
     echo "  SID=\"$(bash \"${SELF_DIR}/configs/find-session.sh\")\""
@@ -253,7 +314,7 @@ fi
 
 case "${CMD}" in
     close)
-        SID="${2:-unknown}"
+        SID="$(normalize_sid "${2:-}")"
         SUMMARY="${3:-session closed}"
         local_count="$(ls -1 "${LOGS_DIR}"/*"${SID}"*.md 2>/dev/null | wc -l || echo 0)"
         {
@@ -262,22 +323,33 @@ case "${CMD}" in
             echo "  - Turns logged: ${local_count}"
             echo ""
         } >> "${PAST_INDEX}"
+        # v0.6 A2: per-session counters are cleaned up here; the legacy global
+        # turn-count file is reset for backwards compatibility only.
+        rm -f "${STATE_DIR}/turn-count.${SID}" 2>/dev/null || true
         echo "0" > "${STATE_DIR}/turn-count"
         echo "${SID}" > "${STATE_DIR}/previous-session-id"
         echo "[pulse] session ${SID} closed and indexed."
         ;;
 
     *)
-        SID="${CMD:-unknown}"
+        SID="$(normalize_sid "${CMD:-}")"
         FACTS="${1:-}"; [ $# -ge 2 ] && FACTS="${2}"
         SIGNALS="${3:-}"; DECISIONS="${4:-}"; FEELINGS="${5:-}"; AFTERTHOUGHT="${6:-}"
 
         LAST_SID=""
         [ -f "${LAST_SID_FILE}" ] && LAST_SID="$(cat "${LAST_SID_FILE}")"
 
-        if [ "${SID}" != "${LAST_SID}" ]; then
+        # v0.6 A3: "new session" = no log exists yet for this SID.
+        # The old check compared against the shared last-session-id file — but
+        # the wake path itself overwrote that file before log_turn ran, so the
+        # comparison misfired under any interleaving (webui + webhook + cron)
+        # and the counter never reset. Log existence is per-SID and race-free.
+        SID_SEEN=0
+        ls -1 "${LOGS_DIR}"/*"_${SID}.md" >/dev/null 2>&1 && SID_SEEN=1
+
+        if [ "${SID_SEEN}" -eq 0 ]; then
             # NEW SESSION — wake
-            if [ -n "${LAST_SID}" ] && [ "${LAST_SID}" != "unknown" ]; then
+            if [ -n "${LAST_SID}" ] && [ "${LAST_SID}" != "${SID}" ] && [ "${LAST_SID}" != "unknown" ]; then
                 echo "${LAST_SID}" > "${STATE_DIR}/previous-session-id"
             fi
             sweep_past
