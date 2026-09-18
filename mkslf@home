@@ -117,6 +117,8 @@ copy_template() {
 # ─── .self/ — the agent's room ───
 copy_template "agent-self.md"        "$DIR/agent-self.md"
 copy_template "operator-pact.md"     "$DIR/operator-pact.md"
+# v0.6: the morality stub — a shape for the pair to fill, never content imposed.
+copy_template "morality.example.md"  "$DIR/morality.example.md"
 copy_template "room-CONTEXT.md"      "$DIR/CONTEXT.md"
 copy_template "room-NOTES.md"        "$DIR/NOTES.md"
 copy_template "WELCOME.md"           "$DIR/WELCOME.md"
